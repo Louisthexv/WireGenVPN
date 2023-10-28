@@ -1,4 +1,6 @@
 import random
+import string
+import subprocess
 
 #function to create network address
 def generate_random_ip(class_type):
