@@ -16,7 +16,6 @@ def generate_random_ip(class_type):
     return f"{first_octect}.0.0.{last_octec}"
 
 if __name__ == "__main__":
-    class_type = input("Choose a network class (A/B/C): ")strip().upper() # allows the user to input their choice for class.
+    class_type = input("Choose a network class (A/B/C): ").strip().upper() # allows the user to input their choice for class.
     random_ip = generate_random_ip(class_type)
-    print(f"Random IP address in Class {class_type}: {random_ip})
-
+    print(f"Random IP address in Class {class_type}: {random_ip}")
