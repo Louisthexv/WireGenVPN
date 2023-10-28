@@ -1,7 +1,6 @@
 import random
 
-
-#create function
+#function to create network address
 def generate_random_ip(class_type):
     if class_type == 'A':
         first_octect = random.randint(1, 126)
