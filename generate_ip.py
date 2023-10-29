@@ -42,25 +42,33 @@ def generate_psk(length=32):
     return ''.join(random.choice(characters) for _ in range(length))
 
 # Function to generate peer configurations
-def generate_peer_configurations(num_peers, use_psk):
+def generate_peer_configurations(num_peers, use_psk, server_ip):
     peer_configs = []
+
     for i in range(num_peers):
         peer_private_key, peer_public_key = generate_wireguard_keys()
-        
+
         if use_psk:
             peer_psk = generate_psk()
             print(f"Generated pre-shared key for Peer {i + 1}: {peer_psk}")
         else:
             peer_psk = ""
-        
+
         # Peer-specific settings
+        peer_ip = server_ip + i + 2  # Server is at x.x.x.1, so peer IP starts at x.x.x.2
+        allowed_ips = "0.0.0.0/0, ::/0"  # Default AllowedIPs (can be changed manually)
+
         peer_config = f"Peer {i + 1}:\n" \
                       f"  Public Key: {peer_public_key}\n" \
                       f"  Private Key: {peer_private_key}\n" \
-                      f"  Pre-Shared Key: {peer_psk}\n"
+                      f"  Pre-Shared Key: {peer_psk}\n" \
+                      f"  AllowedIPs: {allowed_ips}\n" \
+                      f"  Endpoint: x.x.x.{peer_ip} (Replace with actual endpoint)\n"
+
         peer_configs.append(peer_config)
 
     return peer_configs
+
 
 if __name__ == "__main__":
     class_type = input("Choose a network class (A/B/C): ").strip().upper() # allows the user to input their choice for class.
@@ -86,6 +94,7 @@ if __name__ == "__main__":
         use_psk = False
 
     # Ask for server settings
+    # Prompt for server settings (DNS, port, endpoint)
     server_endpoint = input("Enter server endpoint (IPv4 or DDNS): ").strip()
     server_port = input("Enter server port (optional): ").strip()
     server_dns = input("Enter server DNS (optional): ").strip()
