@@ -41,7 +41,7 @@ def generate_psk(length=32):
     characters = string.ascii_letters + string.digits
     return ''.join(random.choice(characters) for _ in range(length))
 
-
+# Function to generate peer configurations
 def generate_peer_configurations(num_peers, use_psk):
     peer_configs = []
     for i in range(num_peers):
@@ -52,7 +52,8 @@ def generate_peer_configurations(num_peers, use_psk):
             print(f"Generated pre-shared key for Peer {i + 1}: {peer_psk}")
         else:
             peer_psk = ""
-
+        
+        # Peer-specific settings
         peer_config = f"Peer {i + 1}:\n" \
                       f"  Public Key: {peer_public_key}\n" \
                       f"  Private Key: {peer_private_key}\n" \
@@ -60,7 +61,6 @@ def generate_peer_configurations(num_peers, use_psk):
         peer_configs.append(peer_config)
 
     return peer_configs
-
 
 if __name__ == "__main__":
     class_type = input("Choose a network class (A/B/C): ").strip().upper() # allows the user to input their choice for class.
@@ -76,12 +76,35 @@ if __name__ == "__main__":
 
     server_private_key, server_public_key = generate_wireguard_keys()
     
-    # Save the generated data to a text file
-    filename = "wireguard_data.txt"
-    data_to_save = f"Random IP address in Class {class_type}: {random_ip}\n" \
-                   f"Pre-Shared Key: {server_psk}\n"  \
-                   f"Server Private Key: {server_private_key}\n" \
-                   f"Server Public Key: {server_public_key}\n"
-    save_data_to_file(filename, data_to_save)
+    # peer section and prompts
+
+    num_peers = int(input("How many peers do you want to add? "))
+    use_psk_for_peers = input("Do you want to use a pre-shared key for the peers (y/n)? ").strip().lower()
+    if use_psk_for_peers == 'y':
+        use_psk = True
+    else:
+        use_psk = False
+
+    # Ask for server settings
+    server_endpoint = input("Enter server endpoint (IPv4 or DDNS): ").strip()
+    server_port = input("Enter server port (optional): ").strip()
+    server_dns = input("Enter server DNS (optional): ").strip()
+
+    # Generate server configuration
+    server_config = f"Server:\n" \
+                    f"  Server Public Key: {server_public_key}\n" \
+                    f"  Server Private Key: {server_private_key}\n" \
+                    f"  Pre-Shared Key for Server: {server_psk}\n" \
+                    f"  Endpoint: {server_endpoint}\n" \
+                    f"  Port: {server_port}\n" \
+                    f"  DNS: {server_dns}\n"
+
+    peer_configs = generate_peer_configurations(num_peers, use_psk)
+
+    # Save server and peer configurations to the same text file
+    filename = "wireguard_config.txt"
+    data_to_save = server_config + "\n" + "\n".join(peer_configs)
+    with open(filename, 'w') as file:
+        file.write(data_to_save)
 
     print(f"Data saved to {filename}")
