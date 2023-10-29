@@ -161,3 +161,6 @@ cython_debug/
 
 # Mac Stupid DS_Files
 .DS_Store
+
+# Output files from WireGenVPN
+wg-server-and-peer-config.txt
