@@ -1,4 +1,0 @@
-Random IP address in Class A: 3.0.0.196
-Pre-Shared Key: 4Z6OXgbkzBLtuQe0CihLg6hpP0n90hBw
-Server Private Key: sAvTJgvHNGBA/OE2S6CtIdr71jdkwNA3I3KzCy9lPU0=
-Server Public Key: sAvTJgvHNGBA/OE2S6CtIdr71jdkwNA3I3KzCy9lPU0= | wg pubkey
