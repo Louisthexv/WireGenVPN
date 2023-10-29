@@ -31,6 +31,11 @@ def generate_psk(length=32):
     characters = string.ascii_letters + string.digits
     return ''.join(random.choice(characters) for _ in range(length))
 
+# Function to save data to a text file
+def save_data_to_file(filename, data):
+    with open(filename, 'w') as file:
+        file.write(data)
+
 if __name__ == "__main__":
     class_type = input("Choose a network class (A/B/C): ").strip().upper() # allows the user to input their choice for class.
     random_ip = generate_random_ip(class_type)
@@ -45,6 +50,11 @@ if __name__ == "__main__":
 
     server_private_key, server_public_key = generate_wireguard_keys()
     
-    print(f"Random IP address in Class {class_type}: {random_ip}")
-    print(f"Server Private Key: {server_private_key}")
-    print(f"Server Public Key: {server_public_key}")
+    # Save the generated data to a text file
+    filename = "wireguard_data.txt"
+    data_to_save = f"Random IP address in Class {class_type}: {random_ip}\n" \
+                   f"Server Private Key: {server_private_key}\n" \
+                   f"Server Public Key: {server_public_key}\n"
+    save_data_to_file(filename, data_to_save)
+
+    print(f"Data saved to {filename}")
