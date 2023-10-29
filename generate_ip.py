@@ -5,24 +5,24 @@ import subprocess
 # Function to create network address
 def generate_random_ip(class_type):
     if class_type == 'A':
-        first_octect = random.randint(1, 126)
+        first_octet = random.randint(1, 126)
     elif class_type == 'B':
-        first_octect = random.randint(128, 191)
+        first_octet = random.randint(128, 191)
     elif class_type == 'C':
-        first_octect = random.randint(192, 223)
+        first_octet = random.randint(192, 223)
     else:
         return "Invalid Class Type"
 
-    last_octec = random.randint(2, 254) # Avoid 0 and 1 for potential server devices
-    return f"{first_octect}.0.0.{last_octec}"
+    last_octet = random.randint(2, 254)  # Avoid 0 and 1 for potential server devices
+    return f"{first_octet}.0.0.{last_octet}"
 
 # Function to generate WireGuard Keys
 def generate_wireguard_keys():
-    # generate server private key
+    # Generate server private key
     server_private_key = subprocess.check_output(['wg', 'genkey']).strip().decode('utf-8')
 
-    # generate server public key
-    server_public_key = subprocess.check_output(['echo', f'{server_private_key}','|', 'wg', 'pubkey']).strip().decode('utf-8')
+    # Generate server public key
+    server_public_key = subprocess.check_output(['echo', server_private_key, '|', 'wg', 'pubkey']).strip().decode('utf-8')
 
     return server_private_key, server_public_key
 
@@ -31,18 +31,8 @@ def generate_psk(length=32):
     characters = string.ascii_letters + string.digits
     return ''.join(random.choice(characters) for _ in range(length))
 
-# Function to save data to a text file
-def save_data_to_file(filename, data):
-    with open(filename, 'w') as file:
-        file.write(data)
-
-# Function to generate a random pre-shared key
-def generate_psk(length=32):
-    characters = string.ascii_letters + string.digits
-    return ''.join(random.choice(characters) for _ in range(length))
-
 # Function to generate peer configurations
-def generate_peer_configurations(num_peers, use_psk, server_ip):
+def generate_peer_configurations(num_peers, use_psk, server_ip, server_endpoint):
     peer_configs = []
 
     for i in range(num_peers):
@@ -55,7 +45,7 @@ def generate_peer_configurations(num_peers, use_psk, server_ip):
             peer_psk = ""
 
         # Peer-specific settings
-        peer_ip = server_ip + i + 2  # Server is at x.x.x.1, so peer IP starts at x.x.x.2
+        peer_ip = f"{server_ip}.{i + 2}"  # Server is at x.x.x.1, so peer IP starts at x.x.x.2
         allowed_ips = "0.0.0.0/0, ::/0"  # Default AllowedIPs (can be changed manually)
 
         peer_config = f"Peer {i + 1}:\n" \
@@ -63,41 +53,41 @@ def generate_peer_configurations(num_peers, use_psk, server_ip):
                       f"  Private Key: {peer_private_key}\n" \
                       f"  Pre-Shared Key: {peer_psk}\n" \
                       f"  AllowedIPs: {allowed_ips}\n" \
-                      f"  Endpoint: x.x.x.{peer_ip} (Replace with actual endpoint)\n"
+                      f"  Endpoint: {server_endpoint}\n"
 
         peer_configs.append(peer_config)
 
     return peer_configs
 
-
 if __name__ == "__main__":
-    class_type = input("Choose a network class (A/B/C): ").strip().upper() # allows the user to input their choice for class.
-    random_ip = generate_random_ip(class_type)
-    print(f"Random IP address in Class {class_type}: {random_ip}")
+    class_type = input("Choose a network class (A/B/C): ").strip().upper()
 
-    generate_psk_option = input("Do you want to generate a pre-shared key for the server (y/n)? ").strip().lower()
-    if generate_psk_option == 'y':
-        server_psk = generate_psk()
-        print(f"Generated server pre-shared key: {server_psk}")
+    if class_type == 'A':
+        server_ip = generate_random_ip(class_type)
+    elif class_type == 'B':
+        server_ip = generate_random_ip(class_type)
+    elif class_type == 'C':
+        server_ip = generate_random_ip(class_type)
     else:
-        server_psk = ""
+        print("Invalid Class Type")
+        exit(1)
 
+    # Prompt for server settings
+    server_endpoint = input("Enter server endpoint (IPv4 or DDNS): ").strip()
+    server_port = "51820"  # Default WireGuard port for the server
+    server_dns = input("Enter server DNS (optional): ").strip()
+
+    # Generate server keys
     server_private_key, server_public_key = generate_wireguard_keys()
-    
-    # peer section and prompts
+    server_psk = generate_psk()  # Generate pre-shared key for the server
 
+    # Prompt for peer settings
     num_peers = int(input("How many peers do you want to add? "))
     use_psk_for_peers = input("Do you want to use a pre-shared key for the peers (y/n)? ").strip().lower()
     if use_psk_for_peers == 'y':
         use_psk = True
     else:
         use_psk = False
-
-    # Ask for server settings
-    # Prompt for server settings (DNS, port, endpoint)
-    server_endpoint = input("Enter server endpoint (IPv4 or DDNS): ").strip()
-    server_port = input("Enter server port (optional): ").strip()
-    server_dns = input("Enter server DNS (optional): ").strip()
 
     # Generate server configuration
     server_config = f"Server:\n" \
@@ -108,7 +98,7 @@ if __name__ == "__main__":
                     f"  Port: {server_port}\n" \
                     f"  DNS: {server_dns}\n"
 
-    peer_configs = generate_peer_configurations(num_peers, use_psk)
+    peer_configs = generate_peer_configurations(num_peers, use_psk, server_ip, server_endpoint)
 
     # Save server and peer configurations to the same text file
     filename = "wireguard_config.txt"
