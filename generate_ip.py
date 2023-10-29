@@ -1,6 +1,7 @@
 import random
 import string
 import subprocess
+import base64 #for preshared keys base64 WireGuard
 
 # Function to generate WireGuard Keys
 def generate_wireguard_keys():
@@ -12,10 +13,11 @@ def generate_wireguard_keys():
 
     return server_private_key, server_public_key
 
-# Function to generate a random pre-shared key
+# Function to generate a random pre-shared key and base64 encode it
 def generate_psk(length=32):
     characters = string.ascii_letters + string.digits
-    return ''.join(random.choice(characters) for _ in range(length))
+    psk = ''.join(random.choice(characters) for _ in range(length))
+    return base64.b64encode(psk.encode()).decode()  # Base64 encode the PSK
 
 # Function to generate peer configurations
 def generate_peer_configurations(num_peers, use_psk, server_ip, server_endpoint):
@@ -23,6 +25,12 @@ def generate_peer_configurations(num_peers, use_psk, server_ip, server_endpoint)
 
     server_ip_parts = server_ip.split('.')
     server_class = server_ip_parts[0]
+
+    same_subnet = input("Do you want the peers to be part of the multiple subnets, if not the peers will be point to point (secure) (y/n)? ").strip().lower()
+    if same_subnet == 'y':
+        same_subnet = True
+    else:
+        same_subnet = False
 
     for i in range(num_peers):
         peer_private_key, peer_public_key = generate_wireguard_keys()
@@ -33,12 +41,17 @@ def generate_peer_configurations(num_peers, use_psk, server_ip, server_endpoint)
         else:
             peer_psk = ""
 
-        # Peer-specific settings
-        peer_ip = f"{server_class}.{server_ip_parts[1]}.{server_ip_parts[2]}.{i + 2}"  # Increment last octet for peers
+        if same_subnet:
+            # Peers are part of the same subnet
+            peer_ip = f"{server_class}.{server_ip_parts[1]}.{server_ip_parts[2]}.{i + 2}/24"
+        else:
+            # Peers have point-to-point connections
+            peer_ip = f"{server_class}.{server_ip_parts[1]}.{server_ip_parts[2]}.{i + 2}/32"
+
         allowed_ips = "0.0.0.0/0, ::/0"  # Default AllowedIPs (can be changed manually)
 
         peer_config = f"Peer {i + 1}:\n" \
-                      f"  IP Address: {peer_ip}/24\n" \
+                      f"  IP Address: {peer_ip}\n" \
                       f"  Public Key: {peer_public_key} | wg pubkey\n" \
                       f"  Private Key: {peer_private_key}\n" \
                       f"  Pre-Shared Key: {peer_psk}\n" \
@@ -56,11 +69,11 @@ if __name__ == "__main__":
     # Prompt for server settings
     server_endpoint = input("Enter server endpoint (IPv4 or DDNS): ").strip()
     server_port = "51820"  # Default WireGuard port for the server
-    server_dns = input("Enter server DNS (optional): ").strip()
+    server_dns = input("Enter server DNS (e.g., 1.1.1.1, 1.0.0.1 or custom (optional): ").strip()
 
     # Generate server keys
     server_private_key, server_public_key = generate_wireguard_keys()
-    server_psk = generate_psk()  # Generate pre-shared key for the server
+    server_psk = generate_psk()
 
     # Prompt for peer settings
     num_peers = int(input("How many peers do you want to add? "))
