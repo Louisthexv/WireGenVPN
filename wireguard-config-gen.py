@@ -89,7 +89,7 @@ if __name__ == "__main__":
     peer_configs = generate_peer_configurations(num_peers, use_psk, server_ip, server_endpoint)
 
     # Save server and peer configurations to the same text file
-    filename = "wireguard_config.txt"
+    filename = "wg-server-and-peer-config.txt"
     data_to_save = server_config + "\n".join(peer_configs)
     with open(filename, 'w') as file:
         file.write(data_to_save)
