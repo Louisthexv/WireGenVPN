@@ -1,6 +1,6 @@
 # WireGenVPN
 
-Description: 2024
+Description: This is on beta, eventually I'll upgrade this tool.
 
 WireGuard Config Generator is a Python-based utility that simplifies the process of creating configuration files for WireGuard VPN servers and peer clients. It's designed to make setting up WireGuard on various platforms, I made this tool mostly to setup the config files in OpenWrt.
 
