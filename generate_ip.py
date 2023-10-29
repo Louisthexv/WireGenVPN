@@ -42,6 +42,26 @@ def generate_psk(length=32):
     return ''.join(random.choice(characters) for _ in range(length))
 
 
+def generate_peer_configurations(num_peers, use_psk):
+    peer_configs = []
+    for i in range(num_peers):
+        peer_private_key, peer_public_key = generate_wireguard_keys()
+        
+        if use_psk:
+            peer_psk = generate_psk()
+            print(f"Generated pre-shared key for Peer {i + 1}: {peer_psk}")
+        else:
+            peer_psk = ""
+
+        peer_config = f"Peer {i + 1}:\n" \
+                      f"  Public Key: {peer_public_key}\n" \
+                      f"  Private Key: {peer_private_key}\n" \
+                      f"  Pre-Shared Key: {peer_psk}\n"
+        peer_configs.append(peer_config)
+
+    return peer_configs
+
+
 if __name__ == "__main__":
     class_type = input("Choose a network class (A/B/C): ").strip().upper() # allows the user to input their choice for class.
     random_ip = generate_random_ip(class_type)
