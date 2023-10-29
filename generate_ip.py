@@ -2,21 +2,6 @@ import random
 import string
 import subprocess
 
-# Function to create network address
-def generate_random_ip():
-    class_type = random.choice(['A', 'B', 'C'])
-    if class_type == 'A':
-        first_octet = random.randint(1, 126)
-    elif class_type == 'B':
-        first_octet = random.randint(128, 191)
-    elif class_type == 'C':
-        first_octet = random.randint(192, 223)
-    else:
-        return "Invalid Class Type"
-
-    server_ip = f"{first_octet}.{random.randint(0, 255)}.{random.randint(0, 255)}.1"  # Assign x.x.x.1 to the server
-    return server_ip
-
 # Function to generate WireGuard Keys
 def generate_wireguard_keys():
     # Generate server private key
@@ -54,7 +39,7 @@ def generate_peer_configurations(num_peers, use_psk, server_ip, server_endpoint)
 
         peer_config = f"Peer {i + 1}:\n" \
                       f"  IP Address: {peer_ip}/24\n" \
-                      f"  Public Key: {peer_public_key}\n" \
+                      f"  Public Key: {peer_public_key} | wg pubkey\n" \
                       f"  Private Key: {peer_private_key}\n" \
                       f"  Pre-Shared Key: {peer_psk}\n" \
                       f"  AllowedIPs: {allowed_ips}\n" \
@@ -65,9 +50,8 @@ def generate_peer_configurations(num_peers, use_psk, server_ip, server_endpoint)
     return peer_configs
 
 if __name__ == "__main__":
-    class_type = input("Choose a network class (A/B/C): ").strip().upper()
-
-    server_ip = generate_random_ip()
+    # Ask the user for the server IP address
+    server_ip = input("Enter the IP address for the server (e.g., x.x.x.1): ").strip()
 
     # Prompt for server settings
     server_endpoint = input("Enter server endpoint (IPv4 or DDNS): ").strip()
