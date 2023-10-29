@@ -20,3 +20,18 @@ Get Started:
 Work in Progress.
 
 Simplify your WireGuard VPN setup and configuration with WireGuard Config Generator. Start generating configurations with ease today!
+
+Requeriments:
+
+* Linux (debian/ubuntu)
+* Python 3
+
+  Update repositories
+  `sudo apt update`
+  `sudo apt upgrade`
+  `sudo apt install wireguard-tools`
+
+* Mac OSx
+* Python 3
+
+  Install on Mac via "brew" packages, wireguard-tools
