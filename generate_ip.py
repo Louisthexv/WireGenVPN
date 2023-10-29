@@ -44,7 +44,7 @@ def generate_psk(length=32):
 # Function to generate peer configurations
 def generate_peer_configurations(num_peers, use_psk):
     peer_configs = []
-    for i in range(num_peers):
+    for i in range(num_peers):ßß
         peer_private_key, peer_public_key = generate_wireguard_keys()
         
         if use_psk:
