@@ -26,7 +26,7 @@ def generate_peer_configurations(num_peers, use_psk, server_ip, server_endpoint)
     server_ip_parts = server_ip.split('.')
     server_class = server_ip_parts[0]
 
-    same_subnet = input("Do you want the peers to be part of the multiple subnets, if not the peers will be point to point (secure) (y/n)? ").strip().lower()
+    same_subnet = input("Do you want the peers to be part of the multiple subnets(/24), if not the peers will be point to point (/32) (y/n)? ").strip().lower()
     if same_subnet == 'y':
         same_subnet = True
     else:
@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
     # Prompt for peer settings
     num_peers = int(input("How many peers do you want to add? "))
-    use_psk_for_peers = input("Do you want to use a pre-shared key for the peers (y/n)? ").strip().lower()
+    use_psk_for_peers = input("Do you want to use a pre-shared key for the peers (extra security) (y/n)? ").strip().lower()
     if use_psk_for_peers == 'y':
         use_psk = True
     else:
