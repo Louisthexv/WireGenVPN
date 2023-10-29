@@ -3,7 +3,8 @@ import string
 import subprocess
 
 # Function to create network address
-def generate_random_ip(class_type):
+def generate_random_ip():
+    class_type = random.choice(['A', 'B', 'C'])
     if class_type == 'A':
         first_octet = random.randint(1, 126)
     elif class_type == 'B':
@@ -13,8 +14,8 @@ def generate_random_ip(class_type):
     else:
         return "Invalid Class Type"
 
-    last_octet = random.randint(2, 254)  # Avoid 0 and 1 for potential server devices
-    return f"{first_octet}.0.0.{last_octet}"
+    server_ip = f"{first_octet}.{random.randint(0, 255)}.{random.randint(0, 255)}.1"  # Assign x.x.x.1 to the server
+    return server_ip
 
 # Function to generate WireGuard Keys
 def generate_wireguard_keys():
@@ -22,7 +23,7 @@ def generate_wireguard_keys():
     server_private_key = subprocess.check_output(['wg', 'genkey']).strip().decode('utf-8')
 
     # Generate server public key
-    server_public_key = subprocess.check_output(['echo', server_private_key, '|', 'wg', 'pubkey']).strip().decode('utf-8')
+    server_public_key = subprocess.check_output(['wg', 'pubkey'], input=server_private_key.encode()).strip().decode('utf-8')
 
     return server_private_key, server_public_key
 
@@ -35,6 +36,9 @@ def generate_psk(length=32):
 def generate_peer_configurations(num_peers, use_psk, server_ip, server_endpoint):
     peer_configs = []
 
+    server_ip_parts = server_ip.split('.')
+    server_class = server_ip_parts[0]
+
     for i in range(num_peers):
         peer_private_key, peer_public_key = generate_wireguard_keys()
 
@@ -45,10 +49,11 @@ def generate_peer_configurations(num_peers, use_psk, server_ip, server_endpoint)
             peer_psk = ""
 
         # Peer-specific settings
-        peer_ip = f"{server_ip}.{i + 2}"  # Server is at x.x.x.1, so peer IP starts at x.x.x.2
+        peer_ip = f"{server_class}.{server_ip_parts[1]}.{server_ip_parts[2]}.{i + 2}"  # Increment last octet for peers
         allowed_ips = "0.0.0.0/0, ::/0"  # Default AllowedIPs (can be changed manually)
 
         peer_config = f"Peer {i + 1}:\n" \
+                      f"  IP Address: {peer_ip}/24\n" \
                       f"  Public Key: {peer_public_key}\n" \
                       f"  Private Key: {peer_private_key}\n" \
                       f"  Pre-Shared Key: {peer_psk}\n" \
@@ -62,15 +67,7 @@ def generate_peer_configurations(num_peers, use_psk, server_ip, server_endpoint)
 if __name__ == "__main__":
     class_type = input("Choose a network class (A/B/C): ").strip().upper()
 
-    if class_type == 'A':
-        server_ip = generate_random_ip(class_type)
-    elif class_type == 'B':
-        server_ip = generate_random_ip(class_type)
-    elif class_type == 'C':
-        server_ip = generate_random_ip(class_type)
-    else:
-        print("Invalid Class Type")
-        exit(1)
+    server_ip = generate_random_ip()
 
     # Prompt for server settings
     server_endpoint = input("Enter server endpoint (IPv4 or DDNS): ").strip()
@@ -90,19 +87,13 @@ if __name__ == "__main__":
         use_psk = False
 
     # Generate server configuration
-    server_config = f"Server:\n" \
-                    f"  Server Public Key: {server_public_key}\n" \
-                    f"  Server Private Key: {server_private_key}\n" \
-                    f"  Pre-Shared Key for Server: {server_psk}\n" \
-                    f"  Endpoint: {server_endpoint}\n" \
-                    f"  Port: {server_port}\n" \
-                    f"  DNS: {server_dns}\n"
+    server_config = f"WireGuard Server\n\nInterface\n  IP Address: {server_ip}/24\n  Server Public Key: {server_public_key} | wg pubkey\n  Server Private Key: {server_private_key}\n  Pre-Shared Key for Server: {server_psk}\n  Endpoint: {server_endpoint}\n  Port: {server_port}\n  DNS: {server_dns}\n\n"
 
     peer_configs = generate_peer_configurations(num_peers, use_psk, server_ip, server_endpoint)
 
     # Save server and peer configurations to the same text file
     filename = "wireguard_config.txt"
-    data_to_save = server_config + "\n" + "\n".join(peer_configs)
+    data_to_save = server_config + "\n".join(peer_configs)
     with open(filename, 'w') as file:
         file.write(data_to_save)
 
