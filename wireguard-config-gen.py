@@ -20,13 +20,15 @@ def generate_psk(length=32):
     return base64.b64encode(psk.encode()).decode()  # Base64 encode the PSK
 
 # Function to generate peer configurations
-def generate_peer_configurations(num_peers, use_psk, server_ip, server_endpoint):
+def generate_peer_configurations(num_peers, use_psk, server_ip, server_endpoint, server_port, server_dns):
     peer_configs = []
 
+    # Server IP and public key for reference in peer configurations
     server_ip_parts = server_ip.split('.')
-    server_class = server_ip_parts[0]
+    server_public_key = generate_wireguard_keys()[1]
 
-    same_subnet = input("Do you want the peers to be part of the multiple subnets [/24], if not the peers will be point to point [/32](y/n)? ").strip().lower()
+    # Ask whether peers should be part of the same subnet
+    same_subnet = input("Do you want the peers to be part of the same subnet (y/n)? ").strip().lower()
     if same_subnet == 'y':
         same_subnet = True
     else:
@@ -37,26 +39,21 @@ def generate_peer_configurations(num_peers, use_psk, server_ip, server_endpoint)
 
         if use_psk:
             peer_psk = generate_psk()
-            print(f"Generated pre-shared key for Peer {i + 1}: {peer_psk}")
         else:
             peer_psk = ""
 
         if same_subnet:
             # Peers are part of the same subnet
-            peer_ip = f"{server_class}.{server_ip_parts[1]}.{server_ip_parts[2]}.{i + 2}/24"
+            peer_ip = f"{server_ip_parts[0]}.{server_ip_parts[1]}.{server_ip_parts[2]}.{i + 2}/24"
         else:
             # Peers have point-to-point connections
-            peer_ip = f"{server_class}.{server_ip_parts[1]}.{server_ip_parts[2]}.{i + 2}/32"
+            peer_ip = f"{server_ip_parts[0]}.{server_ip_parts[1]}.{server_ip_parts[2]}.{i + 2}/32"
 
-        allowed_ips = "0.0.0.0/0, ::/0"  # Default AllowedIPs (can be changed manually)
-
-        peer_config = f"Peer {i + 1}:\n" \
-                      f"  IP Address: {peer_ip}\n" \
-                      f"  Public Key: {peer_public_key} | wg pubkey\n" \
-                      f"  Private Key: {peer_private_key}\n" \
-                      f"  Pre-Shared Key: {peer_psk}\n" \
-                      f"  AllowedIPs: {allowed_ips}\n" \
-                      f"  Endpoint: {server_endpoint}\n"
+        peer_config = f"\n# Peer No. {i + 1}, copy below and create a peer.conf to be parsed\n\n" \
+                      f"[Interface]\nAddress = {peer_ip}\nPrivateKey = {peer_private_key}\nDNS = {server_dns}\n\n" \
+                      f"[Peer]\nPublicKey = {server_public_key}\nPresharedKey = {peer_psk}\n" \
+                      f"Endpoint = {server_endpoint}:{server_port}\nAllowedIPs = 0.0.0.0/0, ::/0\n" \
+                      f"PersistentKeepalive = 0\n"
 
         peer_configs.append(peer_config)
 
@@ -69,7 +66,7 @@ if __name__ == "__main__":
     # Prompt for server settings
     server_endpoint = input("Enter server endpoint (IPv4 or DDNS): ").strip()
     server_port = "51820"  # Default WireGuard port for the server
-    server_dns = input("Enter server DNS (e.g., 1.1.1.1, 1.0.0.1 or custom (optional): ").strip()
+    server_dns = input("Enter server DNS (optional): ").strip()
 
     # Generate server keys
     server_private_key, server_public_key = generate_wireguard_keys()
@@ -77,16 +74,18 @@ if __name__ == "__main__":
 
     # Prompt for peer settings
     num_peers = int(input("How many peers do you want to add? "))
-    use_psk_for_peers = input("Do you want to use a pre-shared key for the peers (extra security) (y/n)? ").strip().lower()
+    use_psk_for_peers = input("Do you want to use a pre-shared key for the peers [extra security] (y/n)? ").strip().lower()
     if use_psk_for_peers == 'y':
         use_psk = True
     else:
         use_psk = False
 
     # Generate server configuration
-    server_config = f"WireGuard Server\n\nInterface\n  IP Address: {server_ip}/24\n  Server Public Key: {server_public_key} | wg pubkey\n  Server Private Key: {server_private_key}\n  Pre-Shared Key for Server: {server_psk}\n  Endpoint: {server_endpoint}\n  Port: {server_port}\n  DNS: {server_dns}\n\n"
+    server_config = f"WireGuard Configs\n\nServer\n\n[Interface]\nAddress = {server_ip}/24\n" \
+                    f"PublicKey = {server_public_key} | wg pubkey\nPrivateKey = {server_private_key}\n" \
+                    f"PresharedKey = {server_psk}\nEndpoint = {server_endpoint}\nListenPort = {server_port}\nDNS = {server_dns}\n\n"
 
-    peer_configs = generate_peer_configurations(num_peers, use_psk, server_ip, server_endpoint)
+    peer_configs = generate_peer_configurations(num_peers, use_psk, server_ip, server_endpoint, server_port, server_dns)
 
     # Save server and peer configurations to the same text file
     filename = "wg-server-and-peer-config.txt"
