@@ -1,17 +1,7 @@
 import random
 import string
 import subprocess
-import base64  # For base64 encoding the pre-shared key
-
-# Function to generate WireGuard Keys
-#def generate_wireguard_keys():
-    # Generate server private key
-#    server_private_key = subprocess.check_output(['wg', 'genkey']).strip().decode('utf-8')
-
-    # Generate server public key
- #   server_public_key = subprocess.check_output(['echo', server_private_key,]).strip().decode('utf-8')
-
- #   return server_private_key, server_public_key
+import base64
 
 # Function to generate WireGuard Keys
 def generate_wireguard_keys():
@@ -45,7 +35,7 @@ def generate_peer_configurations(num_peers, use_psk, server_ip, server_public_ke
         same_subnet = False
 
     for i in range(num_peers):
-        peer_private_key, peer_public_key = generate_wireguard_keys()
+        peer_private_key, _ = generate_wireguard_keys()
 
         if use_psk:
             peer_psk = common_psk
@@ -61,7 +51,7 @@ def generate_peer_configurations(num_peers, use_psk, server_ip, server_public_ke
 
         peer_config = f"\n# Peer No. {i + 1}, copy below and create a peer.conf to be parsed\n\n" \
                       f"[Interface]\nAddress = {peer_ip}\nPrivateKey = {peer_private_key}\nDNS = {server_dns}\n\n" \
-                      f"[Peer]\nPublicKey = {server_public_key}\nPre-Shared Key = {peer_psk}\n" \
+                      f"[Peer]\nPublicKey = {server_public_key}\nPresharedKey = {peer_psk}\n" \
                       f"Endpoint = {server_endpoint}:{server_port}\nAllowedIPs = 0.0.0.0/0, ::/0\n" \
                       f"PersistentKeepalive = 0\n"
 
@@ -80,7 +70,6 @@ if __name__ == "__main__":
 
     # Generate server keys
     server_private_key, server_public_key = generate_wireguard_keys()
-    server_psk = generate_psk()
 
     # Ask the user if they want to use a pre-shared key for the peers
     use_psk_for_peers = input("Do you want to use a pre-shared key for the peers (y/n)? ").strip().lower()
@@ -95,10 +84,10 @@ if __name__ == "__main__":
     # Ask the user how many peers to generate
     num_peers = int(input("How many peers do you want to add? "))
 
-    # Generate server configuration
+# Generate server configuration without "Endpoint" for the server
     server_config = f"WireGuard Configs\n\nServer\n\n[Interface]\nAddress = {server_ip}/24\n" \
                 f"PublicKey = {server_public_key}\nPrivateKey = {server_private_key}\n" \
-                f"Pre-Shared Key = {server_psk}\nEndpoint = {server_endpoint}\nListenPort = {server_port}\nDNS = {server_dns}\n\n"
+                f"ListenPort = {server_port}\nDNS = {server_dns}\n\n"
 
     # Now, you pass the server_public_key to the generate_peer_configurations function
     peer_configs = generate_peer_configurations(num_peers, use_psk, server_ip, server_public_key, server_endpoint, server_port, server_dns, common_psk)
