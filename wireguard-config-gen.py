@@ -26,7 +26,7 @@ def generate_peer_configurations(num_peers, use_psk, server_ip, server_endpoint)
     server_ip_parts = server_ip.split('.')
     server_class = server_ip_parts[0]
 
-    same_subnet = input("Do you want the peers to be part of the multiple subnets(/24), if not the peers will be point to point (/32) (y/n)? ").strip().lower()
+    same_subnet = input("Do you want the peers to be part of the multiple subnets [/24], if not the peers will be point to point [/32](y/n)? ").strip().lower()
     if same_subnet == 'y':
         same_subnet = True
     else:
