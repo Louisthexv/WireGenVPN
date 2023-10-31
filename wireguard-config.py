@@ -106,19 +106,15 @@ server_config = generate_server_config(server_private_key, server_address, serve
 
 # Gather user input for client settings
 # Initialize the clients list with the first client using the server address
-clients = [{
-    "private_key": generate_private_key(),
-    "address": server_address + ".2/24",  # Start with .2/24 for the first client
-    "use_psk": use_psk
-}]
-
-# Gather user input for the rest of the clients
-for i in range(1, num_clients):
+clients = []
+for i in range(1, num_clients + 1):  # Start at 1 and end at num_clients
     client_private_key = generate_private_key()
     use_psk_for_client = use_psk  # Use the same PSK for all clients
+    client_octet = i + 1  # Increment the octet
+    client_address = f"{server_address.rsplit('.', 1)[0]}.{client_octet}/24"
     clients.append({
         "private_key": client_private_key,
-        "address": f"{server_address}.{i + 2}/24",  # Increment the last octet
+        "address": client_address,
         "use_psk": use_psk_for_client
     })
 
