@@ -19,9 +19,17 @@ def generate_public_key(private_key):
 # Function to generate a WireGuard configuration file for the server
 def generate_server_config(private_key, server_address, listen_port, use_psk, num_peers):
     config = f"[Interface]\n"
+    # Add an extra blank line between for better parsing [Interface] sections
+    config += "\n"
     config += f"Address = {server_address}/24\n"
+    # Add an extra blank line between for better parsing [Interface] sections
+    config += "\n"
     config += f"ListenPort = {listen_port}\n"
+    # Add an extra blank line between for better parsing [Interface] sections
+    config += "\n"
     config += f"PrivateKey = {private_key}\n\n"
+    config += "\n"
+    config += "\n"
     
     if use_psk:
         server_octets = server_address.split('.')  # Split the server address into octets
@@ -31,11 +39,18 @@ def generate_server_config(private_key, server_address, listen_port, use_psk, nu
             client_address = f"{server_octets[0]}.{server_octets[1]}.{server_octets[2]}.{client_octet}/32"
             
             config += f"[Peer]\n"
+            # Add an extra blank line between for better parsing  [Peer] sections
+            config += "\n"
             config += f"PublicKey = {generate_public_key(private_key)}\n"
+            # Add an extra blank line between for better parsing [Peer] sections
+            config += "\n"
             config += f"PresharedKey = {psk}\n"
+            # Add an extra blank line between for better parsing  [Peer] sections
+            config += "\n"
             config += f"AllowedIPs = {client_address}\n"
             
-            # Add an extra blank line between [Peer] sections
+            # Add an extra blank line between for better parsing  [Peer] sections
+            config += "\n"
             config += "\n"
 
     return config
@@ -43,17 +58,32 @@ def generate_server_config(private_key, server_address, listen_port, use_psk, nu
 # Function to generate a WireGuard configuration file for a peer
 def generate_peer_config(private_key, client_address, listen_port, server_public_key, use_psk, server_endpoint):
     config = f"[Interface]\n"
+    # Add an extra blank line between for better parsing [Interface] sections
+    config += "\n"
     config += f"Address = {client_address}\n"
+    # Add an extra blank line between for better parsing [Interface] sections
+    config += "\n"
     config += f"ListenPort = {listen_port}\n"
+    # Add an extra blank line between for better parsing [Interface] sections
+    config += "\n"
     config += f"PrivateKey = {private_key}\n\n"
-
+    # Add an extra blank line between for better parsing [Interface] sections
+    config += "\n"
+    config += "\n"
     config += f"[Peer]\n"
+    # Add an extra blank line between for better parsing [Interface] sections
+    config += "\n"
     config += f"PublicKey = {server_public_key}\n"
+    config += "\n"
     
     if use_psk:
         psk = generate_preshared_key()
         config += f"PresharedKey = {psk}\n"
+        # Add an extra blank line between for better parsing [Interface] sections
+        config += "\n"
         config += f"AllowedIPs = 0.0.0.0/0, ::/0\n"
+        # Add an extra blank line between for better parsing [Interface] sections
+        config += "\n"
         config += f"Endpoint = {server_endpoint}:{listen_port}\n"
 
     return config
