@@ -92,10 +92,10 @@ def generate_peer_config(private_key, client_address, listen_port, server_public
 server_private_key = generate_private_key()
 
 # Gather user input for server settings
-server_address = input("Enter the server's network address (e.g., xx.xx.xx.x1): ")
-server_listen_port = input("Enter the server's listen port: ")
+server_address = input("Enter the server's network address CIDR (e.g., X.X.X.1): ")
+server_listen_port = input("Enter the server's listen port (default 5180): ")
 use_psk = input("Add an extra layer of security with a PSK (yes/no): ").lower() == "yes"
-server_endpoint = input("Enter the server's external address or DDNS: ")
+server_endpoint = input("Enter the server's external address (IPV4) or DDNS: ")
 num_clients = int(input("Enter the number of clients: "))
 
 # Generate server public key
